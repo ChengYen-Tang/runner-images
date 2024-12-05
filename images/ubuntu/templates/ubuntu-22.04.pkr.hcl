@@ -1,55 +1,124 @@
 packer {
   required_plugins {
-    azure = {
-      source  = "github.com/hashicorp/azure"
-      version = "1.4.5"
+    hyperv = {
+      version = ">= 1.1.3"
+      source  = "github.com/hashicorp/hyperv"
     }
   }
 }
 
-locals {
-  managed_image_name = var.managed_image_name != "" ? var.managed_image_name : "packer-${var.image_os}-${var.image_version}"
-}
-
-variable "allowed_inbound_ip_addresses" {
-  type    = list(string)
-  default = []
-}
-
-variable "azure_tags" {
-  type    = map(string)
-  default = {}
-}
-
-variable "build_resource_group_name" {
+variable "ansible_override" {
   type    = string
-  default = "${env("BUILD_RESOURCE_GROUP_NAME")}"
+  default = ""
 }
 
-variable "client_cert_path" {
+variable "boot_command" {
+}
+
+variable "disk_size" {
   type    = string
-  default = "${env("ARM_CLIENT_CERT_PATH")}"
+  default = "70000"
 }
 
-variable "client_id" {
+variable "memory" {
   type    = string
-  default = "${env("ARM_CLIENT_ID")}"
+  default = "8192"
 }
 
-variable "client_secret" {
-  type      = string
-  default   = "${env("ARM_CLIENT_SECRET")}"
+variable "cpus" {
+  type    = string
+  default = "4"
+}
+
+variable "iso_checksum" {
+  type    = string
+  default = ""
+}
+
+variable "iso_checksum_type" {
+  type    = string
+  default = "none"
+}
+
+variable "iso_url" {
+  type    = string
+  default = ""
+}
+
+variable "output_directory" {
+  type    = string
+  default = ""
+}
+
+variable "provision_script_options" {
+  type    = string
+  default = ""
+}
+
+variable "output_vagrant" {
+  type    = string
+  default = ""
+}
+
+variable "ssh_password" {
+  type    = string
+  default = ""
   sensitive = true
 }
 
-variable "dockerhub_login" {
+variable "switch_name" {
   type    = string
-  default = "${env("DOCKERHUB_LOGIN")}"
+  default = ""
 }
 
-variable "dockerhub_password" {
+variable "vagrantfile_template" {
   type    = string
-  default = "${env("DOCKERHUB_PASSWORD")}"
+  default = ""
+}
+
+variable "vlan_id" {
+  type    = string
+  default = ""
+}
+
+variable "vm_name" {
+  type    = string
+  default = ""
+}
+
+variable "http_directory" {
+  type    = string
+  default = ""
+}
+
+variable "ssh_username" {
+  type    = string
+  default = "ubuntu"
+}
+
+variable  "uefi_file" {
+  type    = string
+  default = ""
+}
+
+variable  "provision_file" {
+  type    = string
+  default = ""
+}
+
+variable  "motd_file" {
+  type    = string
+  default = ""
+}
+
+variable  "neofetch_file" {
+  type    = string
+  default = ""
+}
+
+variable  "zeroing_file" {
+  type    = string
+  default = ""
 }
 
 variable "helper_script_folder" {
@@ -60,11 +129,6 @@ variable "helper_script_folder" {
 variable "image_folder" {
   type    = string
   default = "/imagegeneration"
-}
-
-variable "image_os" {
-  type    = string
-  default = "ubuntu22"
 }
 
 variable "image_version" {
@@ -82,101 +146,52 @@ variable "installer_script_folder" {
   default = "/imagegeneration/installers"
 }
 
-variable "install_password" {
-  type      = string
-  default   = ""
-  sensitive = true
-}
-
-variable "location" {
+variable "image_os" {
   type    = string
-  default = "${env("ARM_RESOURCE_LOCATION")}"
+  default = "ubuntu22"
 }
 
-variable "managed_image_name" {
-  type    = string
-  default = ""
-}
-
-variable "managed_image_resource_group_name" {
-  type    = string
-  default = "${env("ARM_RESOURCE_GROUP")}"
-}
-
-variable "private_virtual_network_with_public_ip" {
-  type    = bool
-  default = false
-}
-
-variable "subscription_id" {
-  type    = string
-  default = "${env("ARM_SUBSCRIPTION_ID")}"
-}
-
-variable "temp_resource_group_name" {
-  type    = string
-  default = "${env("TEMP_RESOURCE_GROUP_NAME")}"
-}
-
-variable "tenant_id" {
-  type    = string
-  default = "${env("ARM_TENANT_ID")}"
-}
-
-variable "virtual_network_name" {
-  type    = string
-  default = "${env("VNET_NAME")}"
-}
-
-variable "virtual_network_resource_group_name" {
-  type    = string
-  default = "${env("VNET_RESOURCE_GROUP")}"
-}
-
-variable "virtual_network_subnet_name" {
-  type    = string
-  default = "${env("VNET_SUBNET")}"
-}
-
-variable "vm_size" {
-  type    = string
-  default = "Standard_D4s_v4"
-}
-
-source "azure-arm" "build_image" {
-  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
-  build_resource_group_name              = "${var.build_resource_group_name}"
-  client_cert_path                       = "${var.client_cert_path}"
-  client_id                              = "${var.client_id}"
-  client_secret                          = "${var.client_secret}"
-  image_offer                            = "0001-com-ubuntu-server-jammy"
-  image_publisher                        = "canonical"
-  image_sku                              = "22_04-lts"
-  location                               = "${var.location}"
-  managed_image_name                     = "${local.managed_image_name}"
-  managed_image_resource_group_name      = "${var.managed_image_resource_group_name}"
-  os_disk_size_gb                        = "75"
-  os_type                                = "Linux"
-  private_virtual_network_with_public_ip = "${var.private_virtual_network_with_public_ip}"
-  subscription_id                        = "${var.subscription_id}"
-  temp_resource_group_name               = "${var.temp_resource_group_name}"
-  tenant_id                              = "${var.tenant_id}"
-  virtual_network_name                   = "${var.virtual_network_name}"
-  virtual_network_resource_group_name    = "${var.virtual_network_resource_group_name}"
-  virtual_network_subnet_name            = "${var.virtual_network_subnet_name}"
-  vm_size                                = "${var.vm_size}"
-
-  dynamic "azure_tag" {
-    for_each = var.azure_tags
-    content {
-      name = azure_tag.key
-      value = azure_tag.value
-    }
-  }
+source "hyperv-iso" "vm" {
+  boot_command          = "${var.boot_command}"
+  boot_wait             = "1s"
+  communicator          = "ssh"
+  cpus                  = "${var.cpus}"
+  disk_block_size       = "1"
+  disk_size             = "${var.disk_size}"
+  enable_dynamic_memory = "true"
+  enable_secure_boot    = false
+  generation            = 2
+  guest_additions_mode  = "disable"
+  http_directory        = "${var.http_directory}"
+  iso_checksum          = "${var.iso_checksum_type}:${var.iso_checksum}"
+  iso_url               = "${var.iso_url}"
+  memory                = "${var.memory}"
+  output_directory      = "${var.output_directory}"
+  shutdown_command      = "echo 'P@ssw0rd' | sudo -S shutdown -P now"
+  shutdown_timeout      = "30m"
+  ssh_password          = "${var.ssh_password}"
+  ssh_timeout           = "4h"
+  ssh_username          = "${var.ssh_username}"
+  switch_name           = "${var.switch_name}"
+  temp_path             = "."
+  vlan_id               = "${var.vlan_id}"
+  vm_name               = "${var.vm_name}"
 }
 
 build {
-  sources = ["source.azure-arm.build_image"]
+  sources = ["source.hyperv-iso.vm"]
+
+  provisioner "file" {
+    destination = "/tmp/uefi.sh"
+    source      = "${path.root}/../extra/uefi.sh"
+  }
+
+  provisioner "shell" {
+    execute_command   = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+    expect_disconnect = true
+    inline            = ["chmod +x /tmp/uefi.sh", "mv /tmp/uefi.sh /usr/local/bin/uefi.sh", "sync;sync;reboot"]
+    inline_shebang    = "/bin/sh -x"
+  }
 
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -338,7 +353,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "DOCKERHUB_LOGIN=${var.dockerhub_login}", "DOCKERHUB_PASSWORD=${var.dockerhub_password}"]
+    environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
   }
@@ -411,11 +426,6 @@ build {
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     inline          = ["mkdir -p /etc/vsts", "cp /tmp/ubuntu2204.conf /etc/vsts/machine_instance.conf"]
-  }
-
-  provisioner "shell" {
-    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
   }
 
 }
