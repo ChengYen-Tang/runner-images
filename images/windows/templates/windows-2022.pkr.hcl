@@ -1,50 +1,15 @@
 packer {
   required_plugins {
-    azure = {
-      source  = "github.com/hashicorp/azure"
-      version = "1.4.5"
+    hyperv = {
+      version = ">= 1.1.3"
+      source  = "github.com/hashicorp/hyperv"
     }
   }
-}
-
-locals {
-  managed_image_name = var.managed_image_name != "" ? var.managed_image_name : "packer-${var.image_os}-${var.image_version}"
 }
 
 variable "agent_tools_directory" {
   type    = string
   default = "C:\\hostedtoolcache\\windows"
-}
-
-variable "allowed_inbound_ip_addresses" {
-  type    = list(string)
-  default = []
-}
-
-variable "azure_tags" {
-  type    = map(string)
-  default = {}
-}
-
-variable "build_resource_group_name" {
-  type    = string
-  default = "${env("BUILD_RESOURCE_GROUP_NAME")}"
-}
-
-variable "client_cert_path" {
-  type    = string
-  default = "${env("ARM_CLIENT_CERT_PATH")}"
-}
-
-variable "client_id" {
-  type    = string
-  default = "${env("ARM_CLIENT_ID")}"
-}
-
-variable "client_secret" {
-  type      = string
-  default   = "${env("ARM_CLIENT_SECRET")}"
-  sensitive = true
 }
 
 variable "helper_script_folder" {
@@ -74,125 +39,110 @@ variable "imagedata_file" {
 
 variable "temp_dir" {
   type    = string
-  default = "D:\\temp"
+  default = "C:\\temp"
 }
 
-variable "install_password" {
-  type      = string
-  default   = ""
-  sensitive = true
-}
-
-variable "install_user" {
+variable "memory" {
   type    = string
-  default = "installer"
+  default = "1024"
 }
 
-variable "location" {
+variable "cpus" {
   type    = string
-  default = "${env("ARM_RESOURCE_LOCATION")}"
+  default = "1"
 }
 
-variable "managed_image_name" {
+variable "disk_size" {
   type    = string
   default = ""
 }
 
-variable "managed_image_resource_group_name" {
+variable "iso_checksum_type" {
   type    = string
-  default = "${env("ARM_RESOURCE_GROUP")}"
+  default = ""
 }
 
-variable "managed_image_storage_account_type" {
+variable "iso_url" {
   type    = string
-  default = "Premium_LRS"
+  default = ""
 }
 
-variable "object_id" {
+variable "output_directory" {
   type    = string
-  default = "${env("ARM_OBJECT_ID")}"
+  default = ""
 }
 
-variable "private_virtual_network_with_public_ip" {
-  type    = bool
-  default = false
-}
-
-variable "subscription_id" {
+variable "secondary_iso_image" {
   type    = string
-  default = "${env("ARM_SUBSCRIPTION_ID")}"
+  default = ""
 }
 
-variable "temp_resource_group_name" {
+variable "switch_name" {
   type    = string
-  default = "${env("TEMP_RESOURCE_GROUP_NAME")}"
+  default = ""
 }
 
-variable "tenant_id" {
+variable "sysprep_unattended" {
   type    = string
-  default = "${env("ARM_TENANT_ID")}"
+  default = ""
 }
 
-variable "virtual_network_name" {
+variable "upgrade_timeout" {
   type    = string
-  default = "${env("VNET_NAME")}"
+  default = ""
 }
 
-variable "virtual_network_resource_group_name" {
+variable "vlan_id" {
   type    = string
-  default = "${env("VNET_RESOURCE_GROUP")}"
+  default = ""
 }
 
-variable "virtual_network_subnet_name" {
+variable "vm_name" {
   type    = string
-  default = "${env("VNET_SUBNET")}"
+  default = ""
 }
 
-variable "vm_size" {
+variable "install_user" {
   type    = string
-  default = "Standard_F8s_v2"
+  default = ""
 }
 
-source "azure-arm" "image" {
-  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
-  build_resource_group_name              = "${var.build_resource_group_name}"
-  client_cert_path                       = "${var.client_cert_path}"
-  client_id                              = "${var.client_id}"
-  client_secret                          = "${var.client_secret}"
-  communicator                           = "winrm"
-  image_offer                            = "WindowsServer"
-  image_publisher                        = "MicrosoftWindowsServer"
-  image_sku                              = "2022-Datacenter"
-  location                               = "${var.location}"
-  managed_image_name                     = "${local.managed_image_name}"
-  managed_image_resource_group_name      = "${var.managed_image_resource_group_name}"
-  managed_image_storage_account_type     = "${var.managed_image_storage_account_type}"
-  object_id                              = "${var.object_id}"
-  os_disk_size_gb                        = "256"
-  os_type                                = "Windows"
-  private_virtual_network_with_public_ip = "${var.private_virtual_network_with_public_ip}"
-  subscription_id                        = "${var.subscription_id}"
-  temp_resource_group_name               = "${var.temp_resource_group_name}"
-  tenant_id                              = "${var.tenant_id}"
-  virtual_network_name                   = "${var.virtual_network_name}"
-  virtual_network_resource_group_name    = "${var.virtual_network_resource_group_name}"
-  virtual_network_subnet_name            = "${var.virtual_network_subnet_name}"
-  vm_size                                = "${var.vm_size}"
-  winrm_insecure                         = "true"
-  winrm_use_ssl                          = "true"
-  winrm_username                         = "packer"
+variable "install_password" {
+  type    = string
+  default = ""
+}
 
-  dynamic "azure_tag" {
-    for_each = var.azure_tags
-    content {
-      name  = azure_tag.key
-      value = azure_tag.value
-    }
-  }
+source "hyperv-iso" "vm" {
+  boot_command          = ["a<enter><wait>a<enter><wait>a<enter><wait>a<enter>"]
+  boot_wait             = "1s"
+  communicator          = "winrm"
+  cpus                  = "${var.cpus}"
+  disk_size             = "${var.disk_size}"
+  enable_dynamic_memory = "true"
+  enable_secure_boot    = false
+  generation            = 2
+  guest_additions_mode  = "disable"
+  iso_checksum          = "none"
+  iso_url               = "${var.iso_url}"
+  memory                = "${var.memory}"
+  output_directory      = "${var.output_directory}"
+  secondary_iso_images  = ["${var.secondary_iso_image}"]
+  shutdown_timeout      = "30m"
+  skip_export           = true
+  switch_name           = "${var.switch_name}"
+  temp_path             = "."
+  vlan_id               = "${var.vlan_id}"
+  vm_name               = "${var.vm_name}"
+  winrm_password        = "${var.install_password}"
+  winrm_timeout         = "8h"
+  winrm_username        = "${var.install_user}"
+  winrm_use_ssl         = true
+  winrm_insecure        = true
+  enable_virtualization_extensions = true
 }
 
 build {
-  sources = ["source.azure-arm.image"]
+  sources = ["source.hyperv-iso.vm"]
 
   provisioner "powershell" {
     inline = [
@@ -232,15 +182,9 @@ build {
 
   provisioner "windows-shell" {
     inline = [
-      "net user ${var.install_user} ${var.install_password} /add /passwordchg:no /passwordreq:yes /active:yes /Y",
-      "net localgroup Administrators ${var.install_user} /add",
       "winrm set winrm/config/service/auth @{Basic=\"true\"}",
       "winrm get winrm/config/service/auth"
     ]
-  }
-
-  provisioner "powershell" {
-    inline = ["if (-not ((net localgroup Administrators) -contains '${var.install_user}')) { exit 1 }"]
   }
 
   provisioner "powershell" {
@@ -422,27 +366,6 @@ build {
 
   provisioner "powershell" {
     inline = ["if (-not (Test-Path ${var.image_folder}\\tests\\testResults.xml)) { throw '${var.image_folder}\\tests\\testResults.xml not found' }"]
-  }
-
-  provisioner "powershell" {
-    environment_vars = ["IMAGE_VERSION=${var.image_version}", "IMAGE_FOLDER=${var.image_folder}"]
-    inline           = ["pwsh -File '${var.image_folder}\\SoftwareReport\\Generate-SoftwareReport.ps1'"]
-  }
-
-  provisioner "powershell" {
-    inline = ["if (-not (Test-Path C:\\software-report.md)) { throw 'C:\\software-report.md not found' }", "if (-not (Test-Path C:\\software-report.json)) { throw 'C:\\software-report.json not found' }"]
-  }
-
-  provisioner "file" {
-    destination = "${path.root}/../Windows2022-Readme.md"
-    direction   = "download"
-    source      = "C:\\software-report.md"
-  }
-
-  provisioner "file" {
-    destination = "${path.root}/../software-report.json"
-    direction   = "download"
-    source      = "C:\\software-report.json"
   }
 
   provisioner "powershell" {
